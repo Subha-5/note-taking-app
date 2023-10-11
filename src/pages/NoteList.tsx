@@ -1,5 +1,14 @@
 import { useMemo, useState } from "react";
-import { Badge, Button, Card, Col, Form, Row, Stack } from "react-bootstrap";
+import {
+  Badge,
+  Button,
+  Card,
+  Col,
+  Form,
+  Modal,
+  Row,
+  Stack,
+} from "react-bootstrap";
 import { Link } from "react-router-dom";
 import ReactSelect from "react-select";
 
@@ -15,11 +24,19 @@ type SimplifiedNote = {
 type NoteListProps = {
   availableTags: Tag[];
   notes: SimplifiedNote[];
+  onUpdateTag: (id: string, label: string) => void;
+  onDeleteTag: (id: string) => void;
 };
 
-export default function NoteList({ availableTags, notes }: NoteListProps) {
+export default function NoteList({
+  availableTags,
+  notes,
+  onUpdateTag,
+  onDeleteTag,
+}: NoteListProps) {
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [title, setTitle] = useState("");
+  const [editTagsModalIsOpen, setEditModalTagsModalIsOpen] = useState(false);
 
   const filteredNotes = useMemo(() => {
     return notes.filter((note) => {
@@ -45,7 +62,12 @@ export default function NoteList({ availableTags, notes }: NoteListProps) {
             <Link to="/new">
               <Button variant="primary">Create</Button>
             </Link>
-            <Button variant="outline-secondary">Edit Tags</Button>
+            <Button
+              onClick={() => setEditModalTagsModalIsOpen(true)}
+              variant="outline-secondary"
+            >
+              Edit Tags
+            </Button>
           </Stack>
         </Col>
       </Row>
@@ -94,6 +116,15 @@ export default function NoteList({ availableTags, notes }: NoteListProps) {
           </Col>
         ))}
       </Row>
+      <EditTagsModal
+        availableTags={availableTags}
+        show={editTagsModalIsOpen}
+        handleClose={() =>
+          setEditModalTagsModalIsOpen((prevState) => !prevState)
+        }
+        onUpdateTag={onUpdateTag}
+        onDeleteTag={onDeleteTag}
+      />
     </>
   );
 }
@@ -112,7 +143,11 @@ const NoteCard = ({ id, title, tags }: SimplifiedNote) => {
         >
           <span className="fs-5">{title}</span>
           {tags.length > 0 && (
-            <Stack direction="horizontal" gap={1} className="justify-content-center flex-wrap">
+            <Stack
+              direction="horizontal"
+              gap={1}
+              className="justify-content-center flex-wrap"
+            >
               {tags.map((tag) => (
                 <Badge key={tag.id} className="text-truncates">
                   {tag.label}
@@ -123,5 +158,54 @@ const NoteCard = ({ id, title, tags }: SimplifiedNote) => {
         </Stack>
       </Card.Body>
     </Card>
+  );
+};
+
+type EditTagModalProps = {
+  availableTags: Tag[];
+  show: boolean;
+  handleClose: () => void;
+  onUpdateTag: (id: string, label: string) => void;
+  onDeleteTag: (id: string) => void;
+};
+
+const EditTagsModal = ({
+  availableTags,
+  show,
+  handleClose,
+  onUpdateTag,
+  onDeleteTag,
+}: EditTagModalProps) => {
+  return (
+    <Modal show={show} onHide={handleClose}>
+      <Modal.Header closeButton>
+        <Modal.Title>Edit Tags</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form>
+          <Stack gap={2}>
+            {availableTags.map((tag) => (
+              <Row key={tag.id}>
+                <Col>
+                  <Form.Control
+                    onChange={(e) => onUpdateTag(tag.id, e.target.value)}
+                    type="text"
+                    value={tag.label}
+                  />
+                </Col>
+                <Col xs="auto">
+                  <Button
+                    variant="outline-danger"
+                    onClick={() => onDeleteTag(tag.id)}
+                  >
+                    &times;
+                  </Button>
+                </Col>
+              </Row>
+            ))}
+          </Stack>
+        </Form>
+      </Modal.Body>
+    </Modal>
   );
 };
