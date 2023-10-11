@@ -4,9 +4,11 @@ import { Container } from "react-bootstrap";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { v4 as uuidV4 } from "uuid";
 
+import useLocalStorage from "./hooks/useLocalStorage";
 import NewNote from "./pages/NewNote";
 import NoteList from "./pages/NoteList";
-import useLocalStorage from "./hooks/useLocalStorage";
+import NoteLayout from "./layouts/NoteLayout";
+import Note from "./pages/Note";
 
 export type Tag = {
   id: string;
@@ -73,8 +75,8 @@ function App() {
             />
           }
         />
-        <Route path="/:id">
-          <Route index element={<h1>Show</h1>} />
+        <Route path="/:id" element={<NoteLayout notes={notesWithTags}/>}>
+          <Route index element={<Note/>} />
           <Route path="edit" element={<h1>Edit</h1>} />
         </Route>
         <Route path="*" element={<Navigate to={"/"} />} />
